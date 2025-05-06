@@ -4,6 +4,7 @@ from flask import json
 from datetime import datetime
 from urllib.request import urlopen
 import sqlite3
+import requests
 
                                                                                                                                        
 app = Flask(__name__)             
