@@ -39,26 +39,29 @@ def monhistogramme():
     return render_template("histogramme.html")
 
 @app.route('/commits/')
-def commits_graph():
-    response = urlopen('https://api.github.com/repos/OpenRSI/5MCSI_Metriques/commits')
-    raw_content = response.read()
-    json_content = json.loads(raw_content.decode('utf-8'))
+def show_commits_chart():
+    return render_template('commits.html')
 
-    minutes_count = {}
-
-    for commit in json_content:
-        date_str = commit.get('commit', {}).get('author', {}).get('date')
-        if date_str:
-            date_object = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%SZ')
-            minute = date_object.strftime('%H:%M')  # exemple : 11:57
-            minutes_count[minute] = minutes_count.get(minute, 0) + 1
-
-    # On trie les résultats
-    results = sorted([{'minute': k, 'count': v} for k, v in minutes_count.items()], key=lambda x: x['minute'])
-
-    return render_template("commits.html", data=results)
-
-
+@app.route('/api/commits')
+def get_commits_data():
+    # Récupère les données de commits depuis l'API GitHub
+    response = requests.get('https://api.github.com/repos/OpenRSI/5MCSI_Metriques/commits')
+    commits = response.json()
+    
+    # Traitement des données
+    commit_counts = {}
+    for commit in commits:
+        date_str = commit['commit']['author']['date']
+        date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%SZ')
+        minute_key = f"{date.hour}:{date.minute:02d}"
+        commit_counts[minute_key] = commit_counts.get(minute_key, 0) + 1
+    
+    # Formatage pour le graphique
+    chart_data = [['Minute', 'Nombre de commits']]
+    for minute, count in sorted(commit_counts.items()):
+        chart_data.append([minute, count])
+    
+    return jsonify(chart_data)
 
 if __name__ == "__main__":
   app.run(debug=True)
