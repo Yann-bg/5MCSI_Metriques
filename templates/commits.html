@@ -1,40 +1,43 @@
+<!DOCTYPE html>
 <html>
-  <head>
+<head>
     <meta charset="UTF-8">
-    <title>Commits GitHub</title>
+    <title>Activité des Commits</title>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-  </head>
-  <body>
-    <h2>Nombre de commits par minute</h2>
-    <div id="chart_div" style="width: 100%; height: 500px;"></div>
+    <script type="text/javascript">
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(drawChart);
 
-    <script>
-      google.charts.load('current', { packages: ['corechart'] });
-      google.charts.setOnLoadCallback(drawChart);
+        function drawChart() {
+            fetch('/api/commits')
+                .then(response => response.json())
+                .then(data => {
+                    const chartData = google.visualization.arrayToDataTable(data);
+                    
+                    const options = {
+                        title: 'Activité des commits par minute',
+                        legend: { position: 'none' },
+                        hAxis: { title: 'Heure/Minute' },
+                        vAxis: { title: 'Nombre de commits' },
+                        colors: ['#28a745']
+                    };
 
-      function drawChart() {
-        var data = new google.visualization.DataTable();
-        data.addColumn('string', 'Minute');
-        data.addColumn('number', 'Commits');
-
-        var chartData = [
-          {% for row in data %}
-            ['{{ row.minute }}', {{ row.count }}],
-          {% endfor %}
-        ];
-
-        data.addRows(chartData);
-
-        var options = {
-          title: 'Activité des commits (minute par minute)',
-          hAxis: { title: 'Minute', slantedText: true },
-          vAxis: { title: 'Nombre de commits' },
-          legend: 'none'
-        };
-
-        var chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
-        chart.draw(data, options);
-      }
+                    const chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
+                    chart.draw(chartData, options);
+                });
+        }
     </script>
-  </body>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #chart_div { width: 100%; height: 500px; }
+        .header { margin-bottom: 30px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Activité des Commits GitHub</h1>
+        <p>Ce graphique montre la répartition des commits par minute dans le dépôt original</p>
+    </div>
+    <div id="chart_div"></div>
+</body>
 </html>
