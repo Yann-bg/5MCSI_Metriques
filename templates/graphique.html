@@ -1,9 +1,44 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Graphique</title>
-  </head>  
+    <title>Metrique</title>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  </head>
   <body>
-    <h2>Mon Graphique</h2>
+    <h2>Graphique des températures (Tawarano)</h2>
+    <div id="chart_div" style="width: 900px; height: 500px;"></div>
+    <script>
+      google.charts.load('current', { packages: ['corechart'] });
+      google.charts.setOnLoadCallback(drawBackgroundColor);
+
+      function drawBackgroundColor() {
+        function drawChart(data) {
+          var dataTable = new google.visualization.DataTable();
+          dataTable.addColumn('string', 'Date');
+          dataTable.addColumn('number', 'Température (°C)');
+          data.results.forEach(entry => {
+            var date = new Date(entry.Jour * 1000);
+            dataTable.addRow([date.toLocaleDateString(), entry.temp]);
+          });
+
+          var options = {
+            title: 'Évolution des températures de la ville de Tawarano',
+            curveType: 'function',
+            legend: { position: 'bottom' },
+            hAxis: { title: 'Date' },
+            vAxis: { title: 'Température (°C)' }
+          };
+
+          var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+          chart.draw(dataTable, options);
+        }
+
+        fetch('/tawarano/')
+          .then(response => response.json())
+          .then(data => {
+            drawChart(data);
+          });
+      }
+    </script>
   </body>
 </html>
